@@ -116,6 +116,7 @@ public:
 public:
 	friend void reverse(Clink& link);
 	friend bool countdown(int k, Clink& link, int& val);
+	friend void merge(Clink& C1, Clink& C2);
 };
 
 // 逆序
@@ -164,17 +165,48 @@ bool countdown(int k ,Clink& link, int& val)
 	return true;
 }
 
+// 合并两个有序链表
+void merge(Clink& link1, Clink& link2)
+{
+	Node* p = link1.head->next;
+	Node* q = link2.head->next;
+	Node* last = link1.head;
+	link2.head = nullptr;
+	while (p != nullptr && q != nullptr)
+	{
+		if (p->data > q->data)
+		{
+			last->next = q;
+			q = q->next;
+		}
+		else
+		{
+			last->next = p;
+			p = p->next;
+		}	
+		last = last->next;
+	}
+	if (p != nullptr)
+	{
+		last->next = p;
+	}
+	else
+	{
+		last->next = q;
+	}
+}
+
 
 int main()
 {
-	srand((unsigned)time(0));
-	Clink link(0);
-	for (int i = 0; i < 10; i++)
-	{
-		int num = rand() % 100;
-		link.inserthead(num);
-	}
-	link.show();
+	//srand((unsigned)time(0));
+	//Clink link(0);
+	//for (int i = 0; i < 10; i++)
+	//{
+	//	int num = rand() % 100;
+	//	link.inserthead(num);
+	//}
+	//link.show();
 	//link.inserthead(8);
 	//link.show();
 	//link.remove(8);
@@ -193,12 +225,27 @@ int main()
 	//reverse(link);
 	//link.show();
 	
-	int kval;
-	int k = 5;
+	//int kval;
+	//int k = 5;
+	//if (countdown(k, link, kval))
+	//{
+	//	cout << "倒数" << k << "个值为：" << kval << endl;
+	//}
 
-	if (countdown(k, link, kval))
+	int arr1[] = { 4 ,5 ,32 ,48 ,69 ,99 ,100 ,400 };
+	int arr2[] = { 1 ,1 ,13 , 67, 70, 666 };
+	Clink link1;
+	Clink link2;
+	for (int i : arr1)
 	{
-		cout << "倒数" << k << "个值为：" << kval << endl;
+		link1.inserttail(i);
 	}
+	for (int j : arr2)
+	{
+		link2.inserttail(j);
+	}
+	merge(link1, link2);
+	link1.show();
+
 	return 0;
 }
