@@ -224,6 +224,55 @@ bool islinkhasecircle(Node* head, int& val)
 	return false;
 }
 
+// 两个链表是否存在相交，返回相交数据
+bool islinkhasmerge(Node* head1, Node* head2, int& val)
+{
+	Node* p = head1->next;
+	Node* q = head2->next;
+	int count1 = 0;
+	int count2 = 0;
+	while (p != nullptr)
+	{
+		p = p->next;
+		count1++;
+	}
+	while (q != nullptr)
+	{
+		q = q->next;
+		count2++;
+	}
+	p = head1;
+	q = head2;
+	int num;
+	if(count1 > count2)
+	{ 
+		num = count1 - count2;
+		while (num--)
+		{
+			p = p->next;
+		}
+	}
+	else
+	{
+		num = count2 - count1;
+		while (num--)
+		{
+			q = q->next;
+		}
+	}
+	while (p != nullptr && q != nullptr)
+	{
+		if (p == q)
+		{	
+			val = p->data;
+			return true;
+		}
+		p = p->next;
+		q = q->next;
+	}
+	return false;
+}
+
 int main()
 {
 	//srand((unsigned)time(0));
@@ -274,16 +323,34 @@ int main()
 	//merge(link1, link2);
 	//link1.show();
 	
-	Node* head;
-	Node n1(23), n2(36), n3(15), n4(86);
-	head = &n1;
+	//Node* head;
+	//Node n1(0), n2(36), n3(15), n4(86);
+	//head = &n1;
+	//n1.next = &n2;
+	//n2.next = &n3;
+	//n3.next = &n4;
+	//n4.next = &n2;
+	//int val;
+	//if (islinkhasecircle(head, val))
+	//{
+	//	cout << val << endl;
+	//}
+
+	Node* head1;
+	Node* head2;
+	Node n1(0), n2(83), n3(17), n4(13), n5(71), n6(894);
+	Node N1(0), N2(81);
+	head1 = &n1;
 	n1.next = &n2;
 	n2.next = &n3;
 	n3.next = &n4;
-	n4.next = &n2;
+	n4.next = &n5;
+	head2 = &N1;
+	N1.next = &N2;
+	N2.next = &n4;
 
 	int val;
-	if (islinkhasecircle(head, val))
+	if (islinkhasmerge(head1, head2, val))
 	{
 		cout << val << endl;
 	}
