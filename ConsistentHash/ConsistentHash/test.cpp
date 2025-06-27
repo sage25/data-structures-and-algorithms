@@ -6,21 +6,6 @@
 using namespace std;
 using uint = unsigned int;
 
-uint getMD5(const string& str)
-{
-    uint hash = 0;
-    for (char c : str)
-    {
-        hash = (hash * 131) + static_cast<unsigned char>(c); // 131为常用的哈希因子
-    }
-    return hash;
-}
-
-uint getMD5(const char* str)
-{
-    return getMD5(string(str));
-}
-
 class Virtual;
 
 // 物理节点
@@ -35,9 +20,8 @@ public:
 	{
 		for (int i = 0; i < numOfVirtual; i++)
 		{
-			ip_ = ip + '#' + to_string(i);
 			virtualHost.emplace_back(
-				ip_,
+				ip + '#' + to_string(i),
 				this
 			);
 		}
@@ -67,6 +51,11 @@ public:
 	{
 		md5 = ::getMD5(ip.c_str());
 	}
+	string getVirtualIP() const
+	{
+		return ip_;
+	}
+
 	const Physical* getPhysicalHost() const 
 	{
 		return physicalHost_;
@@ -81,7 +70,7 @@ public:
 	}
 	bool operator==(const Virtual&  host) const
 	{
-		return ip_ == host.ip_;
+		return md5 == host.md5;
 	}
 };
 
@@ -92,17 +81,17 @@ private:
 	set<Virtual> hashCircle;	//一次性哈希环
 public:
 	//添加物理节点的虚拟节点
-	void addHost(Physical host)
+	void addHost(const Physical& host)
 	{
 		auto list = host.getVirtualHost();
-		for (auto it : list)
+		for (const auto& it : list)
 		{
 			hashCircle.insert(it);
 		}
 	}
 
 	//删除物理节点的虚拟节点
-	void deleteHost(Physical host)
+	void deleteHost(const Physical& host)
 	{
 		auto list = host.getVirtualHost();
 		for (auto vhost : list)
@@ -128,21 +117,31 @@ public:
 		}
 		return hashCircle.begin()->getPhysicalHost()->getIP();
 	}
+	// 新增：打印所有虚拟节点的 hash 分布
+	void printVirtualNodes() const {
+		cout << "虚拟节点分布 (hash, 虚拟IP, 物理IP):" << endl;
+		for (const auto& vhost : hashCircle) {
+			cout << vhost.getMD5() << ", " << vhost.getVirtualIP() << ", " << vhost.getPhysicalHost()->getIP() << endl;
+		}
+	}
 };
 
 
 int main()
 {
 	// 创建物理节点
-	Physical host1("192.168.1.1", 3);
-	Physical host2("192.168.1.2", 3);
-	Physical host3("192.168.1.3", 3);
+	Physical host1("192.168.1.1", 150);
+	Physical host2("192.168.1.2", 150);
+	Physical host3("192.168.1.3", 150);
 
 	// 创建一致性哈希对象
 	ConsistentHash ch;
 	ch.addHost(host1);
 	ch.addHost(host2);
 	ch.addHost(host3);
+
+	// 打印虚拟节点分布
+	ch.printVirtualNodes();
 
 	// 测试不同client ip的分布
 	vector<string> clientIps = {
@@ -159,8 +158,8 @@ int main()
 	}
 
 	// 删除一个物理节点
-	ch.deleteHost(host2);
-	cout << "\n删除192.168.1.2后分布：" << endl;
+	ch.deleteHost(host1);
+	cout << "\n删除192.168.1.1后分布：" << endl;
 	for (const auto& ip : clientIps) {
 		cout << "Client " << ip << " -> Host " << ch.getHost(ip) << endl;
 	}
