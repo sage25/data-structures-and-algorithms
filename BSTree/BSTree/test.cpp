@@ -1,6 +1,8 @@
 #include<iostream>
 #include<functional>
 #include<stack>
+#include<queue>
+#include<vector>
 using namespace std;
 
 
@@ -28,7 +30,10 @@ public:
 	BSTree()
 		: root_(nullptr)
 	{ }
-	~BSTree() { }
+	~BSTree()
+	{
+		destory(root_);
+	}
 	//非递归插入
 	void n_insert(const T& data)
 	{
@@ -272,6 +277,26 @@ public:
 		postOrder(root_);
 		cout << endl;
 	}
+	//非递归层序遍历
+	void n_levelOrder()
+	{
+		if (root_ == nullptr)
+			return;
+		cout << "[非递归]层序遍历：";
+		queue<Node*> q;
+		q.push(root_);
+		while (!q.empty())
+		{
+			Node* front = q.front();
+			q.pop();
+			cout << front->data_ << ' ';
+			if (front->left_ != nullptr)
+				q.push(front->left_);
+			if (front->right_ != nullptr)
+				q.push(front->right_);
+		}
+		cout << endl;
+	}
 	//递归层序遍历
 	void levelOrder()
 	{
@@ -293,7 +318,85 @@ public:
 	{
 		return number(root_);
 	}
+	//求满足区间[i, j]之间的元素
+	void findValues(vector<T>& vec, const T& i, const T& j)
+	{
+		if (root_ == nullptr)
+			return;
+		findValues(root_, vec, i, j);
+	}
+	//判断二叉树是否BST树
+	bool isBSTree()
+	{
+		Node* cur = nullptr;
+		return isBSTree(root_, cur);
+	}
+	//判断子树问题
+	bool isChildBSTree(BSTree<T, Comp>& child)
+	{
+		if (child.root_ == nullptr)
+		{
+			return true;
+		}
+		Node* cur = root_;
+		//找子树的根节点
+		while (cur != nullptr)
+		{
+			//找到了
+			if (cur->data_ == child.root_->data_)
+			{
+				break;
+			}
+			else if (comp_(cur->data_, child.root_->data_))
+			{
+				cur = cur->right_;
+			}
+			else
+			{
+				cur = cur->left_;
+			}
+		}
+		if (cur == nullptr)		//找不到
+		{
+			return false;
+		}
+		return isChildBSTree(cur, child.root_);
+	}
+	//LCA问题
+	Node* getLCA(const T& val1, const T& val2)
+	{
+		if (root_ == nullptr)
+		{
+			return nullptr;
+		}
+		return getLCA(root_, val1, val2);
+	}
+	//镜像反转问题
+	void mirror01()
+	{
+		root_ = mirror01(root_);
+	}
+	//镜像对称问题
+	bool mirror02()
+	{
+		if (root_ == nullptr)
+		{
+			return true;
+		}
+		return mirror02(root_->left_, root_->right_);
+	}
 private:
+	//递归析构实现
+	void destory(Node* node)
+	{
+		if (node == nullptr)
+			return;
+		if (node->left_ != nullptr)
+			destory(node->left_);
+		if (node->right_ != nullptr)
+			destory(node->right_);
+		delete node;
+	}
 	//递归前序实现
 	void preOrder(Node* node)
 	{
@@ -353,7 +456,7 @@ private:
 		}
 		if(node->left_ != nullptr)
 			levelOrder(node->left_, i - 1);
-		if(node->right_ != nullptr)
+		if (node->right_ != nullptr)
 			levelOrder(node->right_, i - 1);
 	}
 	//递归插入实现
@@ -361,7 +464,7 @@ private:
 	{
 		if (node == nullptr)
 		{
-			 return new Node(data);
+			return new Node(data);
 		}
 		if (data == node->data_)
 			;
@@ -437,7 +540,176 @@ private:
 			node->right_ = remove(data, node->right_);
 		return node;
 	}
+	//求满足区间[i, j]之间的元素实现
+	void findValues(Node* node, vector<T>& vec, const T& i, const T& j)
+	{
+		if (node == nullptr)
+		{
+			return;
+		}
+		if (node->data_ > i)
+		{
+			findValues(node->left_, vec, i, j);
+		}
+		if (i <= node->data_ && node->data_ <= j)
+		{
+			vec.push_back(node->data_);
+		}
+		if (node->data_ < j)
+		{
+			findValues(node->right_, vec, i, j);
+		}
+	}
+	//判断二叉树是否BST树实现
+	bool isBSTree(Node* node, Node*& pre)
+	{
+		if (node == nullptr)
+		{
+			return true;
+		}
+		if (!isBSTree(node->left_, pre))
+		{
+			return false;
+		}
+		if (pre != nullptr)
+		{
+			if (comp_(node->data_, pre->data_))
+			{
+				return false;
+			}
+		}
+		pre = node;
+		return isBSTree(node->right_ ,pre);
+	}
+	//用于测试
+	friend void test1();
+	//判断是否子树问题实现
+	bool isChildBSTree(Node* f, Node* c)
+	{
+		if ((f == nullptr && c == nullptr)
+			|| c == nullptr)
+		{
+			return true;
+		}
+		if ((f == nullptr && c != nullptr) 
+			|| (f->data_ != c->data_))
+		{
+			return false;
+		}
+		return isChildBSTree(f->right_, c->right_)
+			&& isChildBSTree(f->left_, c->left_);
+	}
+	//LCA问题实现
+	Node* getLCA(Node* node, const T& val1, const T& val2)
+	{
+		T max = val1 > val2 ? val1 : val2;
+		T min = val1 < val2 ? val1 : val2;
+		if ((comp_(node->data_, max) && 
+			!comp_(node->data_, min)) 
+			|| node->data_ == max)
+		{
+			return node;
+		}
+		else if (node->data_ > max)
+		{
+			return getLCA(node->left_, val1, val2);
+		}
+		else
+		{
+			return getLCA(node->right_, val1, val2);
+		}
+	}
+	//镜像反转问题实现
+	Node* mirror01(Node* node)
+	{
+		if (node == nullptr)
+		{
+			return nullptr;
+		}
+		Node* cur = node->right_;
+		node->right_ = mirror01(node->left_);
+		node->left_ = mirror01(cur);
+		return node;
+	}
+	//镜像对称问题实现
+	bool mirror02(Node* l, Node* r)
+	{
+		if (l == nullptr && r == nullptr)
+		{
+			return true;
+		}
+		if((l == nullptr && r != nullptr)
+			|| (l != nullptr && r == nullptr)
+			|| l->data_ != r->data_)
+		{
+			return false;
+		}
+		return mirror02(l->right_, r->left_)
+			&& mirror02(l->left_, r->right_);
+	}
+	friend void test4();
 };
+
+void test1()
+{
+	using Node =BSTree<int>::Node;
+	BSTree<int> bst;
+	Node* n1 = new BSTree<int>::Node(50);
+	Node* n2 = new BSTree<int>::Node(30);
+	Node* n3 = new BSTree<int>::Node(80);
+	Node* n4 = new BSTree<int>::Node(20);
+	Node* n5 = new BSTree<int>::Node(99);
+	bst.root_ = n1;			//		50
+	n1->left_ = n2;			//	   /  \ 
+	n1->right_ = n3;		//    30   80
+	n3->left_ = n4;         //        /  \ 
+	n3->right_ = n5;		//       20  99
+	cout << bst.isBSTree();
+}
+void test2(BSTree<int>& bst)
+{
+	BSTree<int> bst1;	//		     58
+	bst1.insert(58);	//			  \ 
+	bst1.insert(67);	//			  67
+	bst1.insert(62);	//			 /	\ 
+	bst1.insert(69);	//          62  69
+	cout << bst.isChildBSTree(bst1);
+}
+void test3()
+{
+	int arr[] = { 58, 24, 67, 0, 34, 62, 69, 5, 41, 64, 78 };
+	BSTree<int> bst;
+	for (int i = 0; i < 11; i++)
+	{
+		bst.insert(arr[i]);
+	}
+	cout << bst.getLCA(34,69)->data_ << endl;
+}
+void test4()
+{
+	using Node = BSTree<int>::Node;
+	BSTree<int> bst;
+	Node* n1 = new BSTree<int>::Node(50);
+	Node* n2 = new BSTree<int>::Node(70);
+	Node* n3 = new BSTree<int>::Node(70);
+	Node* n4 = new BSTree<int>::Node(42);
+	Node* n5 = new BSTree<int>::Node(42);
+	Node* n6 = new BSTree<int>::Node(14);
+	Node* n7 = new BSTree<int>::Node(14);
+	Node* n8 = new BSTree<int>::Node(23);
+	Node* n9 = new BSTree<int>::Node(23);
+	bst.root_ = n1;
+	n1->left_ = n2;
+	n1->right_ = n3;
+	n2->left_ = n4;
+	n3->right_ = n5;
+	n2->right_ = n6;
+	n3->left_ = n7;
+	n4->right_ = n8;
+	n5->left_ = n9;
+	cout << bst.mirror02() << endl;
+}
+
 
 
 int main()
@@ -464,11 +736,28 @@ int main()
 	//bst.levelOrder();
 	//bst.n_preOrder();
 	//bst.n_inOrder();
-	bst.n_postOrder();
+	//bst.n_postOrder();
+	//bst.n_levelOrder();
 	//cout << bst.high() << endl;
 	//cout << bst.number() << endl;
 	//cout << bst.query(54) << endl;
 	//cout << bst.query(41) << endl;
-	
+
+	//vector<int> vec;
+	//bst.findValues(vec, 20, 60);
+	//for (int i : vec)
+	//{
+	//	cout << i << ' ';
+	//}
+	//cout << endl;
+	//cout << bst.isBSTree();
+	//cout << bst.isBSTree() << endl;
+	//test1();
+	//test2(bst);
+	//test3();
+
+	//bst.mirror01();
+	//bst.inOrder();
+	test4();
 	return 0;
 }
