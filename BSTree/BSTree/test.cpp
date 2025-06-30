@@ -3,6 +3,7 @@
 #include<stack>
 #include<queue>
 #include<vector>
+#include<math.h>
 using namespace std;
 
 
@@ -27,12 +28,13 @@ private:
 	//比较对象
 	Comp comp_;
 public:
-	BSTree()
+	BSTree(Comp comp=Comp())
 		: root_(nullptr)
+		, comp_(comp)
 	{ }
 	~BSTree()
 	{
-		destory(root_);
+		destroy(root_);
 	}
 	//非递归插入
 	void n_insert(const T& data)
@@ -385,16 +387,38 @@ public:
 		}
 		return mirror02(root_->left_, root_->right_);
 	}
+	//已知前序中序重建树
+	void rebuild(T pre[], int i, int j, T in[], int m, int n)
+	{
+		root_ = rebuild(root_, pre, i, j, in, m, n);
+	}
+	//判断是否平衡树
+	bool isBalance()
+	{
+		bool flag = true;
+		int l = 0;
+		isBalance(root_, l, flag);
+		return flag;
+	}
+	//中序遍历倒数第k个节点
+	T& getVal(int k)
+	{
+		int i = 1;
+		return getVal(root_, k)->data_;
+	}
 private:
+	//用于测试
+	friend void test1();
+	friend void test4();
 	//递归析构实现
-	void destory(Node* node)
+	void destroy(Node* node)
 	{
 		if (node == nullptr)
 			return;
 		if (node->left_ != nullptr)
-			destory(node->left_);
+			destroy(node->left_);
 		if (node->right_ != nullptr)
-			destory(node->right_);
+			destroy(node->right_);
 		delete node;
 	}
 	//递归前序实现
@@ -581,8 +605,6 @@ private:
 		pre = node;
 		return isBSTree(node->right_ ,pre);
 	}
-	//用于测试
-	friend void test1();
 	//判断是否子树问题实现
 	bool isChildBSTree(Node* f, Node* c)
 	{
@@ -647,7 +669,63 @@ private:
 		return mirror02(l->right_, r->left_)
 			&& mirror02(l->left_, r->right_);
 	}
-	friend void test4();
+	//已知前序中序重建树实现
+	Node* rebuild(Node* node, T pre[], int i, int j, T in[], int m, int n)
+	{
+		if (i > j || m > n)
+		{
+			return nullptr;
+		}
+		node = new Node (pre[i]);
+		int pos = 0;
+		for (; pre[i] != in[pos]; pos++);
+		node->left_ = rebuild(node->left_, pre, i + 1, i + (pos - m), in, m, pos - 1);
+		node->right_ = rebuild(node->right_, pre, i + (pos - m) + 1, j, in, pos + 1, n);
+		return node;
+	}
+	//判断是否平衡树实现
+	int isBalance(Node* node, int l, bool& flag)
+	{
+		int left = l;
+		int right = l;
+		if (!flag)
+		{
+			return -1;
+		}
+		if (node->left_ != nullptr)
+		{
+			left = isBalance(node->left_, l + 1, flag);
+		}
+		if (node->right_ != nullptr)
+		{
+			right = isBalance(node->right_, l + 1, flag);
+		}
+		if (abs(left - right) > 1)
+		{
+			flag = false;
+		}
+		return left > right ? left : right;
+	}
+	////中序遍历倒数第k个节点实现
+	int i = 1;
+	Node* getVal(Node* node, int k)
+	{
+		//LVR -> RVL
+		if (node == nullptr)
+		{
+			return nullptr;
+		}
+		Node* left = getVal(node->right_, k);
+		if (left != nullptr)
+		{
+			return left;
+		}
+		if (k == i++)
+		{
+			return node;                   
+		}
+		return getVal(node->left_, k);
+	}
 };
 
 void test1()
@@ -709,6 +787,16 @@ void test4()
 	n5->left_ = n9;
 	cout << bst.mirror02() << endl;
 }
+void test5()
+{
+	BSTree<int> bst;
+	int pre[] = { 58, 24, 0, 5, 34, 41, 67, 62, 64, 69, 78 };
+	int in[] = { 0, 5, 24, 34, 41, 58, 62, 64, 67, 69, 78 };
+	bst.rebuild(pre, 0, 10, in, 0, 10);
+	bst.preOrder();
+	bst.inOrder();
+	bst.postOrder();
+}
 
 
 
@@ -758,6 +846,10 @@ int main()
 
 	//bst.mirror01();
 	//bst.inOrder();
-	test4();
+	//test4();
+	//test5();
+	//bst.insert(45);
+	//cout << bst.isBalance() << endl;
+	//cout << bst.getVal(3);
 	return 0;
 }
