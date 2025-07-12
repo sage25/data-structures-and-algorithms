@@ -8,11 +8,33 @@ public:
 		:root_(nullptr)
 	{ }
 	//插入
-	void insert(T data)
+	void insert(const T& val)
 	{
-
+		if (root_ = nullptr)
+		{
+			root_ = new Node(val);
+		}
+		Node* cur = root_;
+		Node* parent = nullptr;
+		while (cur != nullptr)
+		{
+			parent = cur;
+			if (val > cur->data_)
+			{
+				cur = cur->right_;
+			}
+			else if (val < cur->left_)
+			{
+				cur = cur->left_;
+			}
+			else
+			{
+				return;
+			}
+		}
+		cur = new Node(val, nullptr, nullptr, parent, RED);
+		fixAfterInsert(cur);
 	}
-
 private:
 	//定义颜色
 	enum Color
@@ -25,7 +47,7 @@ private:
 	{
 		Node(T data= T(), Node* left = nullptr
 		, Node* right = nullptr, Node* parent = nullptr
-		, Color color = BLACK, int height = 0)
+		, Color color = BLACK)
 			: data_(data)
 			, left_(left)
 			, right_(right)
@@ -40,14 +62,6 @@ private:
 	};
 	//指向根节点
 	Node* root_;
-	int height(Node* node)
-	{
-		if (node == nullptr)
-		{
-			return 0;
-		}
-		return max(height(node->left_), height(node->right_) + 1;
-	}
 	//返回颜色
 	Color color(Node* node)
 	{
@@ -81,13 +95,13 @@ private:
 		child->parent_ = node->parent_;
 		if (node->parent_ != nullptr)
 		{
-			if (node->->parent_->left_ == node)
+			if (node->parent_->left_ == node)
 			{
-				node->->parent_->left_ = child;
+				node->parent_->left_ = child;
 			}
 			else
 			{
-				node->->parent_->right_ = child;
+				node->parent_->right_ = child;
 			}
 		}
 		else
@@ -134,6 +148,69 @@ private:
 		child->right_ = node;
 		node->parent_ = child;
 	};
+private:
+	//修复插入后的节点颜色
+	void fixAfterInsert(Node* node)
+	{
+		while (color(node->parent_) == RED)
+		{
+			if (left(parent(parent(node))) == parent(node))
+			{
+				//插入节点在爷爷节点的左边
+				Node* uncle = left(parent(parent(node)));
+				//处理情况1
+				if (color(uncle) = BLACK)
+				{
+					setColor(parent(node), BLACK);
+					setColor(parent(parent(node)), RED);
+					setColor(uncle, BLACK);
+					node = parent(parent(node));
+				}
+				else
+				{
+					//处理情况3
+					if (right(parent(node)) == node)
+					{
+						node = parent(node);
+						leftRotate(node);
+					}
+					//处理情况2
+					setColor(parent(node), BLACK);
+					setColor(parent(parent(node)), RED);
+					rightRotate(parent(parent(node)));
+					break;
+				}
+			}
+			else
+			{
+				//插入节点在爷爷节点的右边
+				Node* uncle = right(parent(parent(node)));
+				//处理情况1
+				if (color(uncle) = BLACK)
+				{
+					setColor(parent(node), BLACK);
+					setColor(parent(parent(node)), RED);
+					setColor(uncle, BLACK);
+					node = parent(parent(node));
+				}
+				else
+				{
+					//处理情况3
+					if (left(parent(node)) == node)
+					{
+						node = parent(node);
+						rightRotate(node);
+					}
+					//处理情况2
+					setColor(parent(node), BLACK);
+					setColor(parent(parent(node)), RED);
+					leftRotate(parent(parent(node)));
+					break;
+				}
+			}
+		}
+		setColor(root_, BLACK);
+	}
 };
 
 int main()
