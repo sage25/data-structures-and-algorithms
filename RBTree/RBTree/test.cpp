@@ -1,18 +1,19 @@
 #include<algorithm>
 
 template<class T>
-class BSTree
+class RBTree
 {
 public:
-	BSTree()
+	RBTree()
 		:root_(nullptr)
 	{ }
 	//插入
 	void insert(const T& val)
 	{
-		if (root_ = nullptr)
+		if (root_ == nullptr)
 		{
-			root_ = new Node(val);
+			root_ = new Node(val, nullptr, nullptr, nullptr, BLACK);
+			return;
 		}
 		Node* cur = root_;
 		Node* parent = nullptr;
@@ -23,7 +24,7 @@ public:
 			{
 				cur = cur->right_;
 			}
-			else if (val < cur->left_)
+			else if (val < cur->data_)
 			{
 				cur = cur->left_;
 			}
@@ -33,7 +34,109 @@ public:
 			}
 		}
 		cur = new Node(val, nullptr, nullptr, parent, RED);
+		if (val > parent->data_)
+		{
+			parent->right_ = cur;
+		}
+		else
+		{
+			parent->left_ = cur;
+		}
 		fixAfterInsert(cur);
+	}
+	void remove(const T& val)
+	{
+		if (root_ == nullptr)
+		{
+			return;
+		}
+		Node* cur = root_;
+		while (cur != nullptr)
+		{
+			if (cur->data_ < val)
+			{
+				cur = cur->right_;
+			}
+			else if (cur->data_ > val)
+			{
+				cur = cur->left_;
+			}
+			else
+			{
+				break;
+			}
+		}
+		if (cur == nullptr)
+		{
+			return;
+		}
+		//删除节点有两个孩子
+		if (cur->left_ != nullptr && cur->right_ != nullptr)
+		{
+			//前驱节点覆盖
+			Node* pre = cur->left_;
+			while (pre->right_ != nullptr)
+			{
+				pre = pre->right_;
+			}
+			cur->data_ = pre->data_;
+			cur = pre;
+		}
+		//删除节点最多有一个孩子
+		Node* child = cur->left_ != nullptr ? cur->left_ : cur->right_;
+		//left parent right
+		if (child != nullptr)
+		{
+			child->parent_ = cur->parent_;
+			if (cur->parent_ == nullptr)
+			{
+				//cur是根节点
+				root_ = cur;
+			}
+			else
+			{
+				if (left(parent(cur)) == cur)
+				{
+					cur->parent_->left_ = child;
+				}
+				else
+				{
+					cur->parent_->right_ = child;
+				}
+			}
+
+			Color c = color(cur);
+			delete cur;
+			if (c == BLACK)
+			{
+				fixAfterRemove(child);
+			}
+		}
+		else // child == nullptr
+		{
+			if (parent(cur) == nullptr)
+			{
+				delete cur;
+				root_ = nullptr;
+				return;
+			}
+			else
+			{
+				if (color(cur) == BLACK)
+				{
+					fixAfterRemove(cur);
+				}
+				if (left(parent(cur)) == cur)
+				{
+					cur->parent_->left_ = nullptr;
+				}
+				else
+				{
+					cur->parent_->right_ = nullptr;
+				}
+			}
+			delete cur;
+		}
 	}
 private:
 	//定义颜色
@@ -88,7 +191,7 @@ private:
 		return node->parent_;
 	}
 	//左旋
-	Node* leftRotate(Node* node)
+	void leftRotate(Node* node)
 	{
 		//以child为轴进行左旋
 		Node* child = node->right_;
@@ -118,7 +221,7 @@ private:
 		node->parent_ = child;
 	}
 	//右旋
-	Node* rightRotate(Node* node)
+	void rightRotate(Node* node)
 	{
 		//以child为轴进行右旋
 		Node* child = node->left_;
@@ -152,14 +255,14 @@ private:
 	//修复插入后的节点颜色
 	void fixAfterInsert(Node* node)
 	{
-		while (color(node->parent_) == RED)
+		while (color(node->parent_) == RED && node != root_)
 		{
 			if (left(parent(parent(node))) == parent(node))
 			{
 				//插入节点在爷爷节点的左边
-				Node* uncle = left(parent(parent(node)));
+				Node* uncle = right(parent(parent(node)));
 				//处理情况1
-				if (color(uncle) = BLACK)
+				if (color(uncle) == RED)
 				{
 					setColor(parent(node), BLACK);
 					setColor(parent(parent(node)), RED);
@@ -182,11 +285,11 @@ private:
 				}
 			}
 			else
-			{
+			{	
 				//插入节点在爷爷节点的右边
-				Node* uncle = right(parent(parent(node)));
+				Node* uncle = left(parent(parent(node)));
 				//处理情况1
-				if (color(uncle) = BLACK)
+				if (color(uncle) == RED)
 				{
 					setColor(parent(node), BLACK);
 					setColor(parent(parent(node)), RED);
@@ -211,9 +314,102 @@ private:
 		}
 		setColor(root_, BLACK);
 	}
+	//修复删除后节点颜色
+	void fixAfterRemove(Node* node)
+	{
+		while (node != root_ && color(node) == BLACK)
+		{
+			if (left(parent(node)) == node)
+			{
+				//删除节点在父节点左边
+
+				Node* brother = right(parent(node));
+				if (color(brother) == RED)
+				{
+					//情况四
+					setColor(parent(node), RED);
+					setColor(brother, BLACK);
+					leftRotate(parent(node));
+					brother = right(parent(node));
+				}
+				if (color(left(brother)) == BLACK 
+					&& color(right(brother)) == BLACK)
+				{
+					//情况三
+					setColor(brother, RED);
+					node = parent(node);
+				}
+				else
+				{
+					if (color(left(brother)) == RED)
+					{
+						//情况二
+						setColor(left(brother), BLACK);
+						setColor(brother, RED);
+						rightRotate(brother);
+						brother = right(parent(node));
+					}
+					//情况一
+					setColor(brother, color(parent(node)));
+					setColor(parent(node), BLACK);
+					setColor(right(brother), BLACK);
+					leftRotate(parent(node));
+					return;
+				}
+			}
+			else
+			{
+				//删除节点在父节点右边
+
+				Node* brother = left(parent(node));
+				if (color(brother) == RED)
+				{
+					//情况四
+					setColor(parent(node), RED);
+					setColor(brother, BLACK);
+					rightRotate(parent(node));
+					brother = left(parent(node));
+				}
+				if (color(left(brother)) == BLACK
+					&& color(right(brother)) == BLACK)
+				{
+					//情况三
+					setColor(brother, RED);
+					node = parent(node);
+				}
+				else
+				{
+					if (color(right(brother)) == RED)
+					{
+						//情况二
+						setColor(right(brother), BLACK);
+						setColor(brother, RED);
+						leftRotate(brother);
+						brother = left(parent(node));
+					}
+					//情况一
+					setColor(brother, color(parent(node)));
+					setColor(parent(node), BLACK);
+					setColor(left(brother), BLACK);
+					rightRotate(parent(node));
+					return;
+				}
+			}
+		}
+		setColor(node, BLACK);
+	}
 };
 
 int main()
 {
+	RBTree <int>rbt;
+	for (int i = 1; i <= 10; i++)
+	{
+		rbt.insert(i);
+	}
+	rbt.remove(9);
+	rbt.remove(10);
+	rbt.remove(5);
+	rbt.remove(3);
 	return 0;
 }
