@@ -159,6 +159,8 @@ int main()
 
 #endif
 
+
+#if 0
 //给定一个数组arr和一个数字number，从arr中选出一组数字，使得这组数字之和等于number
 //也有可能找不到
 int arr[] = { 4,8,12,16,7,9,3 };
@@ -213,5 +215,120 @@ int main()
 	}
 	cout << endl;
 	cout << "cnt:" << cnt << endl;
+	return 0;
+}
+
+#endif
+
+#if 0
+int arr[] = { 4,5,6,7 };
+int number = 10;
+const int length = sizeof(arr) / sizeof(arr[0]);
+int sum = 0; //记录选择的数之和
+vector<int> x; //记录选择的数
+
+void func(int i)
+{
+	if (i == length || sum == number)
+	{
+		if (sum != number)
+		{
+			return;
+		}
+		else
+		{
+			for (int v : x)
+			{
+				cout << v << ' ';
+			}
+			cout << endl;
+		}
+	}
+	else
+	{
+		for (int j = i; j < length; j++)
+		{
+			if (sum <= number)
+			{
+				sum += arr[j];
+				x.push_back(arr[j]);
+				func(j);
+				x.pop_back();
+				sum -= arr[j];
+			}
+			
+		}
+	}
+}
+
+int main()
+{
+	func(0);
+
+	return 0;
+}
+#endif
+
+//0-1背包问题：有一组物品，其重量分别是：w1,w2,w3,...,wn，其价值分别是：v1,v2,v3,...,vn
+//现在有一个背包，其容量是C，问：怎么把物品装入背包能够使价值最大化？
+int w[] = { 12,5,8,9,6 }; // 物品重量
+int v[] = { 9,2,4,7,8 }; // 物品价值
+const int length = sizeof(w) / sizeof(w[0]);
+int c = 20;	// 背包容量
+int sumOfW = 0; // 所选物品重量之和
+int sumOfV = 0; // 所选物品价值之和
+vector<int> x;  // 所选物品
+vector<int> bestX;	//最优解
+int max = 0;	// 记录最优解的价值
+int r = 0; // 未处理物品的价值
+
+void func(int i)
+{
+	if (i == length)
+	{
+		if (sumOfW > c)
+		{
+			return;
+		}
+		if (::max < sumOfV)
+		{
+			::max = sumOfV;
+			bestX = x;
+		}
+	}
+	else
+	{
+		r -= v[i];
+		if (sumOfW + w[i] <= 20)
+		{
+			sumOfW += w[i];
+			sumOfV += v[i];
+			x.push_back(w[i]);
+			func(i + 1);
+			x.pop_back();
+			sumOfW -= w[i];
+			sumOfV -= v[i];
+		}
+		
+		if (r + sumOfV >= ::max)
+		{
+			func(i + 1);
+		}
+		r += v[i];
+	}
+}
+
+int main()
+{
+	for (int i : v)
+	{
+		r += i;
+	}
+	func(0);
+	for (int i : bestX)
+	{
+		cout << i << ' ';
+	}
+	cout << endl;
 	return 0;
 }
