@@ -269,6 +269,8 @@ int main()
 }
 #endif
 
+
+#if 0
 //0-1背包问题：有一组物品，其重量分别是：w1,w2,w3,...,wn，其价值分别是：v1,v2,v3,...,vn
 //现在有一个背包，其容量是C，问：怎么把物品装入背包能够使价值最大化？
 int w[] = { 12,5,8,9,6 }; // 物品重量
@@ -330,5 +332,69 @@ int main()
 		cout << i << ' ';
 	}
 	cout << endl;
+	return 0;
+}
+
+#endif
+
+//解空间-排列树，
+// 全排列问题解法一
+int arr[] = { 1,2,3 };
+const int length = sizeof(arr) / sizeof(arr[0]);
+vector<int> x;
+
+void func(int i)
+{
+	if (i == length)
+	{
+		for (int v : arr)
+		{
+			cout << v << ' ';
+		}
+		cout << endl;
+	}
+	else
+	{
+		for (int k = i; k < length; k++)
+		{
+			swap(arr[i], arr[k]);
+			func(i + 1);
+			swap(arr[i], arr[k]);
+		}
+	}
+}
+
+//解法二，基于穷举法的回溯算法（结果顺序与上面不同）
+bool status[length] = { false };
+vector<int> vec; //记录选择的数字
+void func1(int i)
+{
+	if (i == length)
+	{
+		for (int v : vec)
+		{
+			cout << v << ' ';
+		}
+		cout << endl;
+	}
+	else
+	{
+		for (int j = 0; j < length; j++)
+		{
+			if (!status[j])
+			{
+				status[j] = true;
+				vec.push_back(arr[j]);
+				func1(i + 1);
+				vec.pop_back();
+				status[j] = false;
+			}
+		}
+	}
+}
+
+int main()
+{
+	func1(0);
 	return 0;
 }
