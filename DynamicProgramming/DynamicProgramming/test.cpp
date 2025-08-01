@@ -47,10 +47,11 @@ int main()
 }
 #endif
 
-/*
-dp[i] = min({dp[i-1]+1, dp[i-3]+1, dp[i-5]+1})
-*/
 
+#if 0
+/*
+状态转移方程：dp[i] = min({dp[i-1]+1, dp[i-3]+1, dp[i-5]+1})
+*/
 int func(int i, int dp[])
 {
 	dp[1] = dp[3] = dp[5] = 1;
@@ -71,6 +72,39 @@ int main()
 	int dp[i + 1] = { 0 };
 	int result = func(i, dp);
 
+	cout << "result:" << result << endl;
+	return 0;
+}
+
+#endif
+
+
+/*
+LIS问题：求最长不降（升序）子数组
+状态转移方程：dp[i] = arr[i] >= arr[i - 1] ? dp[i] = dp[i] + 1 : 1
+*/
+int func(int arr[], int length, int dp[])
+{
+	dp[0] = 1;
+	int max = dp[0];
+	for (int i = 1; i < length; ++i)
+	{
+		dp[i] = arr[i] >= arr[i - 1] ? dp[i] = dp[i - 1] + 1 : 1;
+		if (dp[i] > max)
+		{
+			max = dp[i];
+		}
+	}
+	return max;
+
+}
+
+int main()
+{
+	int arr[] = { 2,7,6,9,14,2,8 };
+	const int length = sizeof(arr) / sizeof(arr[0]);
+	int dp[length] = { 0 };
+	int result = func(arr, length, dp);
 	cout << "result:" << result << endl;
 	return 0;
 }
