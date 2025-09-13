@@ -97,6 +97,42 @@ public:
 		}
 		cout << endl;
 	}
+	//不带权值的最短路径（广度优先）
+	void shortPath(int start, int end)
+	{
+		queue<int> que;
+		vector<int> visited(vertics.size(), 0);
+		que.push(start);
+		visited[start] = -1;
+
+		while (!que.empty())
+		{
+			int no = que.front();
+			que.pop();
+			
+			for (auto& it : vertics[no].adjList)
+			{
+				if (visited[it] != 0)
+				{
+					continue;
+				}
+				if (it == end)
+				{
+					//找到了
+					visited[it] = no;
+					printPath(end, visited);
+					return;
+				}
+				que.push(it);
+				visited[it] = no;
+			}
+		}
+		if (que.empty())
+		{
+			cout << "无法找到从start到end的最短路径" << endl;
+		}
+		
+	}
 private:
 	//深度优先搜索实现
 	void dfs(int start, vector<bool>& vec)
@@ -113,15 +149,35 @@ private:
 			dfs(it, vec);
 		}
 	}
+	void printPath(int end, vector<int>& visited)
+	{
+		/* 反向打印
+		while (end != -1)
+		{
+			cout << vertics[end].data_ << "<=";
+			end = visited[end];
+		}
+		cout << endl;
+		*/
+
+		//正向打印
+		if (end == -1)
+		{
+			return;
+		}
+		printPath(visited[end], visited);
+		cout << vertics[end].data_ << " ";
+	}
 };
 
 
-int main()
-{
-	DirGraph graph;
-	graph.readFile("data.txt");
-	graph.show();
-	graph.dfs();
-	graph.bfs();
-	return 0;
-}
+//int main()
+//{
+//	DirGraph graph;
+//	graph.readFile("data.txt");
+//	graph.show();
+//	graph.dfs();
+//	graph.bfs();
+//	graph.shortPath(1, 3);
+//	return 0;
+//}
